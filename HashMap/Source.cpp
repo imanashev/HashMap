@@ -5,8 +5,9 @@
 using namespace std;
 void main()
 {
-	HashMap<std::string,std::string> dict(1000);
+	HashMap<std::string,std::string> dict(100);
 
+	//Вставка
 	for (int i = 0; i < 1000; ++i)
 	{
 		std::string a, b;
@@ -15,19 +16,21 @@ void main()
 		dict.insert(a, b);
 	}
 
-	cout << "Load factor:" << dict.getLoad() << endl;
-	//std::string input;
-	//while (getline(std::cin, input))
-	//{
-	//	cout << dict[input] << endl;
-	//}
+	//Поиск
+	/*std::string input;
+	cout << "Search: ";
+	while (getline(std::cin, input))
+	{
+		cout << "Result: " << dict[input] << endl;
+		cout << "Search: ";
+	}*/
 	
-	for (int i = 0; i < 1000; ++i)
+	//Удаление
+	/*for (int i = 0; i < 100; ++i)
 	{
 		std::string a;
 		a = "key" + std::to_string(i);
-		cout << dict[a] << endl;
 		dict.remove(a);
-	}
+	}*/
 	cout << "Load factor:" << dict.getLoad() << endl;
 }

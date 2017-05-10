@@ -3,56 +3,71 @@
 #include <iostream>
 #include <exception>
 
-#define SIZE_KOEF 1.4 //How much reserv
-#define MAX_LOAD_FACTOR 5 //max load factor for rehash
-
 template <class K, class V>
 class HashMap
 {
 private:
 	std::list<std::pair<K,V>>* table_;
-	int n_; //size
-	int l_; //max lenght of all lists - load factor
+	int size_; //size
+	int n_; //count of elements
 	void rehash();
 public:
-	HashMap(int n);
+	HashMap(int size);
 
 	void insert(K& key, V& value);
 	bool remove(K& key);
 	V& operator[](K& key);
-	int getLoad();
+	double getLoad();
 };
 
+template<class K, class V>
+void HashMap<K, V>::rehash()
+{
+	std::list<std::pair<K, V>>* tmp;
+	tmp = new std::list<std::pair<K, V>>[size_ * 2];
+	for (int i = 0; i < size_; ++i)
+	{
+		while (!table_[i].empty())
+		{
+			std::pair<K, V> cur = table_[i].front();
+			int hash = std::hash<K>()(cur.first) % (size_ * 2);
+			tmp[hash].push_front(cur);
+			table_[i].pop_front();
+		}
+	}
+	delete[] table_;
+	table_ = tmp;
+	size_ *= 2;
+
+	//std::cout << "WOW! It's rehashing!!!" << std::endl;
+	//std::cout << "size_ = " <<  size_ << std::endl;
+	//std::cout << "n_ = " << n_ << std::endl<< std::endl;
+}
 
 template<class K, class V>
-inline HashMap<K, V>::HashMap(int n)
+inline HashMap<K, V>::HashMap(int size)
 {
-	n_ = (int)(n * SIZE_KOEF);
-	table_ = new std::list<std::pair<K, V>>[n_];
-	l_ = 0;
+	size_ = size;
+	table_ = new std::list<std::pair<K, V>>[size_];
+	n_ = 0;
 }
 
 template<class K, class V>
 void HashMap<K, V>::insert(K & key, V & value)
 {
-	int hash = std::hash<K>()(key) % n_;
+	int hash = std::hash<K>()(key) % size_;
 	table_[hash].push_front(std::make_pair(key, value));
-	if (table_[hash].size() > l_)
+	n_ += 1;
+	if (n_ > 1.33 * size_)
 	{
-		l_ = (int)table_[hash].size();
-		if (l_ > MAX_LOAD_FACTOR)
-		{
-			rehash();
-		}
-	}
-
-	
+		rehash();
+	}	
 }
 
 template<class K, class V>
 bool HashMap<K, V>::remove(K & key)
 {
-	int hash = std::hash<K>()(key) % n_;
+	int hash = std::hash<K>()(key) % size_;
 
 	for (auto it = table_[hash].begin(); it != table_[hash].end(); ++it)
 	{
@@ -60,6 +75,7 @@ bool HashMap<K, V>::remove(K & key)
 		{
 			//delete
 			table_[hash].erase(it);
+			n_ -= 1;
 			return true;
 		}
 	}
@@ -70,7 +86,7 @@ bool HashMap<K, V>::remove(K & key)
 template<class K, class V>
 V & HashMap<K, V>::operator[](K & key)
 {
-	int hash = std::hash<K>()(key) % n_;
+	int hash = std::hash<K>()(key) % size_;
 
 	for (auto it = table_[hash].begin(); it != table_[hash].end(); ++it)
 	{
@@ -81,13 +97,12 @@ V & HashMap<K, V>::operator[](K & key)
 	}
 
 	std::cout << "Not found" << std::endl;
-	//TODO
-	//return it->second;
+	//throw "Not found";
 
 }
 
 template<class K, class V>
-inline int HashMap<K, V>::getLoad()
+inline double HashMap<K, V>::getLoad()
 {
-	return l_;
+	return n_ / (double)size_;
 }
